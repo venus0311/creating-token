@@ -1,49 +1,95 @@
 "use client";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 
-import dynamic from "next/dynamic";
-import React from "react";
-import { BaseWalletMultiButton } from "@solana/wallet-adapter-react-ui";
+export default function WalletButton() {
+  return (
+    <ConnectButton.Custom>
+      {({
+        account,
+        chain,
+        openAccountModal,
+        openChainModal,
+        openConnectModal,
+        authenticationStatus,
+        mounted,
+      }) => {
+        // Note: If your app doesn't use authentication, you
+        // can remove all 'authenticationStatus' checks
+        const ready = mounted && authenticationStatus !== 'loading';
+        const connected =
+          ready &&
+          account &&
+          chain &&
+          (!authenticationStatus ||
+            authenticationStatus === 'authenticated');
 
-const CUSTOM_LABELS = {
-  "no-wallet": "Connect Wallet",
-  "has-wallet": "Connect",
-  "select-wallet": "Connect Wallet",
-  "change-wallet": "Change Wallet",
-  connecting: "Connecting...",
-  "copy-address": "Copy Address",
-  copied: "Copied!",
-  disconnect: "Disconnect",
-};
+        return (
+          <div
+            {...(!ready && {
+              'aria-hidden': true,
+              'style': {
+                opacity: 0,
+                pointerEvents: 'none',
+                userSelect: 'none',
+              },
+            })}
+          >
+            {(() => {
+              if (!connected) {
+                return (
+                  <button onClick={openConnectModal}
+                    type="button"
+                    style={{
+                      color: 'white',              // foreground color
+                      backgroundColor: '#f17b2c',  // button bg color
+                      borderRadius: '8px',
+                      padding: '8px 16px',
+                      border: 'none',
+                    }}
+                  >
+                    Select Wallet
+                  </button>
+                );
+              }
 
-const WalletButton = dynamic(
-  async () =>
-    (await import("@solana/wallet-adapter-react-ui")).WalletMultiButton,
-  { ssr: false }
-);
+              if (chain.unsupported) {
+                return (
+                  <button onClick={openChainModal}
+                    type="button"
+                    style={{
+                      color: 'white',              // foreground color
+                      backgroundColor: '#f17b2c',  // button bg color
+                      borderRadius: '8px',
+                      padding: '8px 16px',
+                      border: 'none',
+                    }}
+                  >
+                    Wrong network
+                  </button>
+                );
+              }
 
-interface CustomWalletButtonProps {
-  disabled?: boolean;
-  onDisabledClick?: () => void;
+              return (
+                <div style={{ display: 'flex',
+                  gap: 12,
+                  color: 'white',              // foreground color
+                  backgroundColor: '#f17b2c',  // button bg color
+                  borderRadius: '8px',
+                  padding: '8px 16px',
+                  border: 'none', }}
+                >
+                  <button onClick={openAccountModal} type="button">
+                    {account.displayName}
+                    {account.displayBalance
+                      ? ` (${account.displayBalance})`
+                      : ''}
+                  </button>
+                </div>
+              );
+            })()}
+          </div>
+        );
+      }}
+    </ConnectButton.Custom>
+  );
 }
-
-const CustomWalletButton = dynamic(
-  () =>
-    Promise.resolve(
-      ({
-        disabled = false,
-        onDisabledClick,
-      }: CustomWalletButtonProps) => (
-        <div
-          className={`flex items-center wallet-wrapper`}>
-          <BaseWalletMultiButton
-            labels={CUSTOM_LABELS}
-            disabled={disabled}
-          />
-        </div>
-      )
-    ),
-  { ssr: false }
-);
-
-export { CustomWalletButton, WalletButton };
-export default WalletButton;

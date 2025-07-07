@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { useWallet } from '@solana/wallet-adapter-react';
+import { useAccount } from 'wagmi';
 import WalletButton from '@/components/WalletButton';
 import SearchFilter from '@/app/tokens/components/SearchFilter';
 import TokenGrid from '@/app/tokens/components/TokenGrid';
@@ -11,7 +11,7 @@ import { ERC20Tokens } from '@/app/tokens/api/mockTokens';
 const user_has_created_tokens = true;
 
 export default function MyTokensPage() {
-  const { connected } = useWallet();
+  const { isConnected } = useAccount();
   const [searchQuery, setSearchQuery] = useState('');
 
   // Filter user's tokens based on search query
@@ -29,7 +29,7 @@ export default function MyTokensPage() {
       </p>
       
       {/* Conditional section */}
-      {connected ? (
+      {isConnected ? (
         user_has_created_tokens ? (
           <>
             <div className="mt-6">

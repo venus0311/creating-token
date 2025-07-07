@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { WalletConnectProvider } from "@/providers/WalletConnectProvider";
+import WalletConnectProvider from "@/providers/WalletConnectProvider";
 import { ToastProvider } from "@/components/ui/toast";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";

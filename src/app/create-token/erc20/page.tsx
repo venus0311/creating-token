@@ -23,6 +23,7 @@ import ReflectionForm from "../components/ReflectionForm";
 import BuybackLiquidityForm from "../components/BuybackLiquidityForm";
 import ConfirmButton from "@/components/ui/ConfirmButton";
 import { WalletAddressButton } from "@/components/ui/WalletAddressButton";
+import { FeeSettings } from "@/types/feesetting";
 
 export default function ERC20TokenPage() {
   const [expandedSections, setExpandedSections] = useState({
@@ -51,6 +52,19 @@ export default function ERC20TokenPage() {
     feeType?: string;
     taxPercentage?: string;
   }>({});
+  const feeSettings: FeeSettings = {
+    treasuryFeeBps: 0,
+    applyTreasuryFeeToAll: false,
+
+    burnFeeBps: 0,
+    applyBurnFeeToAll: false,
+
+    reflectionFeeBps: 0,
+    applyReflectionFeeToAll: false,
+
+    liquidityFeeBps: 0,
+    applyLiquidityFeeToAll: false
+  }
 
   type SectionKey = "tokenType" | "chain" | "tokenInfo" | "features";
 
@@ -122,9 +136,8 @@ export default function ERC20TokenPage() {
                 className="p-2 transition-transform"
               >
                 <ChevronDown
-                  className={`w-5 h-5 text-text-500 transition-transform duration-300 ${
-                    expandedSections.chain ? "rotate-180" : ""
-                  }`}
+                  className={`w-5 h-5 text-text-500 transition-transform duration-300 ${expandedSections.chain ? "rotate-180" : ""
+                    }`}
                 />
               </button>
             </div>
@@ -194,9 +207,8 @@ export default function ERC20TokenPage() {
                 className="p-2 transition-transform"
               >
                 <ChevronDown
-                  className={`w-5 h-5 text-text-500 transition-transform duration-300 ${
-                    expandedSections.tokenInfo ? "rotate-180" : ""
-                  }`}
+                  className={`w-5 h-5 text-text-500 transition-transform duration-300 ${expandedSections.tokenInfo ? "rotate-180" : ""
+                    }`}
                 />
               </button>
             </div>
@@ -209,7 +221,7 @@ export default function ERC20TokenPage() {
                   </h3>
 
                   {/* Image Upload */}
-                  <ImageUpload onFileSelect={() => {}} />
+                  <ImageUpload onFileSelect={() => { }} />
 
                   <div className="space-y-2">
                     <label
@@ -365,9 +377,8 @@ export default function ERC20TokenPage() {
                 className="p-2 transition-transform"
               >
                 <ChevronDown
-                  className={`w-5 h-5 text-text-500 transition-transform duration-300 ${
-                    expandedSections.features ? "rotate-180" : ""
-                  }`}
+                  className={`w-5 h-5 text-text-500 transition-transform duration-300 ${expandedSections.features ? "rotate-180" : ""
+                    }`}
                 />
               </button>
             </div>
@@ -475,7 +486,19 @@ export default function ERC20TokenPage() {
 
           {/* Submit Button */}
           <div className="mt-8">
-            <ConfirmButton />
+            {/* <ConfirmButton /> */}
+            <ConfirmButton
+              name={tokenName}
+              symbol={tokenSymbol}
+              totalSupply={initialSupply}
+              router="0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
+              treasuryAddress={treasuryWallet}
+              feeSettings={feeSettings}
+              serviceFeeReceiver="0x324BF4ae1c6ca3d28B700a6158aF203e908F0C12"
+              serviceFeeEth="0.01"
+              onSuccess={(txHash) => console.log("Created token in tx:", txHash)}
+              onError={(err) => console.error("Token creation failed:", err)}
+            />
           </div>
         </form>
       </div>
