@@ -44,8 +44,8 @@ const ConfirmButton: React.FC<ConfirmButtonProps> = ({
   });
 
   // const tokenFactoryAddress: `0x${string}` = "0x324BF4ae1c6ca3d28B700a6158aF203e908F0C12";
+  const tokenFactoryAddress: `0x${string}` = "0x324BF4ae1c6ca3d28B700a6158aF203e908F0C12";
 
-  const {tokenFactoryAddress} = useAccount();
   const tokenFactoryABI = [
     {
       type: "function",

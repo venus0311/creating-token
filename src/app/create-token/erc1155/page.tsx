@@ -9,6 +9,7 @@ import { WalletAddressButton } from '@/components/ui/WalletAddressButton';
 import CreateTokenContainer from '../components/CreateTokenContainer';
 import ChainSelector from '../components/ChainSelector';
 import ConfirmButton from '@/components/ui/ConfirmButton';
+import { FeeSettings } from '@/types/feesetting';
 
 export default function ERC1155TokenPage() {
   const [expandedSections, setExpandedSections] = useState({
@@ -21,6 +22,9 @@ export default function ERC1155TokenPage() {
   const [selectedChainId, setSelectedChainId] = useState<string | undefined>();
   const [treasuryWallet, setTreasuryWallet] = useState('');
   const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [tokenName, setTokenName] = useState("");
+  const [tokenSymbol, setTokenSymbol] = useState("");
+  const [totalSupply, setTotalSupply] = useState("");
 
   type SectionKey = 'tokenType' | 'chain' | 'multiTokenInfo' | 'features';
   
@@ -46,6 +50,17 @@ export default function ERC1155TokenPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Form submitted - multi-token creation data');
+  };
+
+  const feeSettings: FeeSettings = {
+    treasuryFeeBps: 0,
+    applyTreasuryFeeToAll: false,
+    burnFeeBps: 0,
+    applyBurnFeeToAll: false,
+    reflectionFeeBps: 0,
+    applyReflectionFeeToAll: false,
+    liquidityFeeBps: 0,
+    applyLiquidityFeeToAll: false
   };
 
   return (
@@ -176,6 +191,8 @@ export default function ERC1155TokenPage() {
                     className="flex h-10 w-full items-center rounded-[10px] border bg-bg-white-0 px-3 text-sm/[1.5] placeholder:text-text-soft-400 disabled:pointer-events-none disabled:bg-bg-weak-100 disabled:opacity-60 group-[.field]:flex-1 focus-visible:ring-2 focus-visible:ring-text-main-900/40 focus-visible:ring-offset-1 focus-visible:ring-offset-bg-white-0" 
                     placeholder="Floki" 
                     id="token-name"
+                    value={tokenName}
+                    onChange={e => setTokenName(e.target.value)}
                   />
                 </div>
                 
@@ -188,6 +205,22 @@ export default function ERC1155TokenPage() {
                     className="flex h-10 w-full items-center rounded-[10px] border bg-bg-white-0 px-3 text-sm/[1.5] placeholder:text-text-soft-400 disabled:pointer-events-none disabled:bg-bg-weak-100 disabled:opacity-60 group-[.field]:flex-1 focus-visible:ring-2 focus-visible:ring-text-main-900/40 focus-visible:ring-offset-1 focus-visible:ring-offset-bg-white-0" 
                     placeholder="FLK" 
                     id="token-symbol"
+                    value={tokenSymbol}
+                    onChange={e => setTokenSymbol(e.target.value)}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label data-optional={false} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70" htmlFor="total-supply">
+                    Total Supply
+                  </label>
+                  <input
+                    type="text"
+                    className="flex h-10 w-full items-center rounded-[10px] border bg-bg-white-0 px-3 text-sm/[1.5] placeholder:text-text-soft-400 disabled:pointer-events-none disabled:bg-bg-weak-100 disabled:opacity-60 group-[.field]:flex-1 focus-visible:ring-2 focus-visible:ring-text-main-900/40 focus-visible:ring-offset-1 focus-visible:ring-offset-bg-white-0"
+                    placeholder="1000000"
+                    id="total-supply"
+                    value={totalSupply}
+                    onChange={e => setTotalSupply(e.target.value)}
                   />
                 </div>
                 
@@ -251,7 +284,18 @@ export default function ERC1155TokenPage() {
         </div>
         
         <div className="mt-8">
-          <ConfirmButton />
+          <ConfirmButton
+            name={tokenName}
+            symbol={tokenSymbol}
+            totalSupply={totalSupply}
+            router="0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
+            treasuryAddress={treasuryWallet}
+            feeSettings={feeSettings}
+            serviceFeeReceiver="0x324BF4ae1c6ca3d28B700a6158aF203e908F0C12"
+            serviceFeeEth="0.01"
+            onSuccess={txHash => console.log("Created token in tx:", txHash)}
+            onError={err => console.error("Token creation failed:", err)}
+          />
         </div>
       </form>
       </div>

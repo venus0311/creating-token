@@ -10,6 +10,7 @@ import { WalletAddressButton } from "@/components/ui/WalletAddressButton";
 
 import CreateTokenContainer from "../components/CreateTokenContainer";
 import ChainSelector from "../components/ChainSelector";
+import { FeeSettings } from '@/types/feesetting';
 
 export default function ERC721TokenPage() {
   const [expandedSections, setExpandedSections] = useState({
@@ -26,6 +27,9 @@ export default function ERC721TokenPage() {
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [ipfsUrl, setIpfsUrl] = useState("");
   const [treasuryWallet, setTreasuryWallet] = useState("");
+  const [tokenName, setTokenName] = useState("");
+  const [tokenSymbol, setTokenSymbol] = useState("");
+  const [totalSupply, setTotalSupply] = useState("");
 
   // Move SectionKey type above toggleSection for proper scoping
   type SectionKey = "tokenType" | "chain" | "collectionInfo" | "features";
@@ -47,6 +51,17 @@ export default function ERC721TokenPage() {
 
       return newState;
     });
+  };
+
+  const feeSettings: FeeSettings = {
+    treasuryFeeBps: 0,
+    applyTreasuryFeeToAll: false,
+    burnFeeBps: 0,
+    applyBurnFeeToAll: false,
+    reflectionFeeBps: 0,
+    applyReflectionFeeToAll: false,
+    liquidityFeeBps: 0,
+    applyLiquidityFeeToAll: false
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -300,19 +315,42 @@ export default function ERC721TokenPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-sm font-medium leading-none flex items-baseline gap-1">
-                      Max Supply
-                      <p className="block text-text-300 text-xs/[1.5] font-normal">
-                        (The max supply is the number of images you uploaded in
-                        the previous step.)
-                      </p>
+                    <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70" htmlFor="token-name">
+                      Choose a name for your NFT
                     </label>
                     <input
                       type="text"
-                      className="flex h-10 w-full items-center rounded-[10px] border bg-bg-white-0 px-3 text-sm/[1.5] placeholder:text-text-soft-400 disabled:pointer-events-none disabled:bg-bg-weak-100 disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-text-main-900/40 focus-visible:ring-offset-1 focus-visible:ring-offset-bg-white-0"
-                      placeholder="0"
-                      disabled
-                      value="0"
+                      className="flex h-10 w-full items-center rounded-[10px] border bg-bg-white-0 px-3 text-sm/[1.5] placeholder:text-text-soft-400 disabled:pointer-events-none disabled:bg-bg-weak-100 disabled:opacity-60 group-[.field]:flex-1 focus-visible:ring-2 focus-visible:ring-text-main-900/40 focus-visible:ring-offset-1 focus-visible:ring-offset-bg-white-0"
+                      placeholder="NFT Name"
+                      id="token-name"
+                      value={tokenName}
+                      onChange={e => setTokenName(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70" htmlFor="token-symbol">
+                      Choose a symbol for your NFT
+                    </label>
+                    <input
+                      type="text"
+                      className="flex h-10 w-full items-center rounded-[10px] border bg-bg-white-0 px-3 text-sm/[1.5] placeholder:text-text-soft-400 disabled:pointer-events-none disabled:bg-bg-weak-100 disabled:opacity-60 group-[.field]:flex-1 focus-visible:ring-2 focus-visible:ring-text-main-900/40 focus-visible:ring-offset-1 focus-visible:ring-offset-bg-white-0"
+                      placeholder="NFTSYMBOL"
+                      id="token-symbol"
+                      value={tokenSymbol}
+                      onChange={e => setTokenSymbol(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70" htmlFor="total-supply">
+                      Total Supply
+                    </label>
+                    <input
+                      type="text"
+                      className="flex h-10 w-full items-center rounded-[10px] border bg-bg-white-0 px-3 text-sm/[1.5] placeholder:text-text-soft-400 disabled:pointer-events-none disabled:bg-bg-weak-100 disabled:opacity-60 group-[.field]:flex-1 focus-visible:ring-2 focus-visible:ring-text-main-900/40 focus-visible:ring-offset-1 focus-visible:ring-offset-bg-white-0"
+                      placeholder="10000"
+                      id="total-supply"
+                      value={totalSupply}
+                      onChange={e => setTotalSupply(e.target.value)}
                     />
                   </div>
 
@@ -376,7 +414,18 @@ export default function ERC721TokenPage() {
           </div>
 
           <div className="mt-8">
-            <ConfirmButton />
+            <ConfirmButton
+              name={tokenName}
+              symbol={tokenSymbol}
+              totalSupply={totalSupply}
+              router="0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
+              treasuryAddress={treasuryWallet}
+              feeSettings={feeSettings}
+              serviceFeeReceiver="0x324BF4ae1c6ca3d28B700a6158aF203e908F0C12"
+              serviceFeeEth="0.01"
+              onSuccess={txHash => console.log("Created token in tx:", txHash)}
+              onError={err => console.error("Token creation failed:", err)}
+            />
           </div>
         </form>
       </div>
