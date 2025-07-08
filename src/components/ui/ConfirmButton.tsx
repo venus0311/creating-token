@@ -1,9 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
-import { useAccount, useBalance, useWriteContract } from "wagmi";
-import { parseUnits, parseEther } from "viem";
+import { useAccount, useBalance, usePublicClient, useReadContract, useWalletClient, useWriteContract } from "wagmi";
+import { parseUnits, parseEther, formatEther } from "viem";
 import { FeeSettings } from "@/types/feesetting";
+import FeeReceiverAbi from "@/json/FeeReceiverAbi.json";
+import RexasErc20 from "@/json/RexasErc20.json";
+import { toast } from "./toast";
 
 interface ConfirmButtonProps {
   type?: "button" | "submit" | "reset";
@@ -15,7 +18,6 @@ interface ConfirmButtonProps {
   treasuryAddress: string;
   feeSettings: FeeSettings;
   serviceFeeReceiver: `0x${string}`;
-  serviceFeeEth: string;
   onSuccess?: (txHash: string) => void;
   onError?: (error: any) => void;
 }
@@ -30,56 +32,36 @@ const ConfirmButton: React.FC<ConfirmButtonProps> = ({
   treasuryAddress,
   feeSettings,
   serviceFeeReceiver,
-  serviceFeeEth,
   onSuccess,
   onError,
 }) => {
   const [loading, setLoading] = useState(false);
   const { address } = useAccount();
+  const { data: walletClient } = useWalletClient();
+  const publicClient = usePublicClient();
 
-  const { writeContractAsync } = useWriteContract();
+  const { data, isFetched: isFetchedServiceFee } = useReadContract({
+    abi: FeeReceiverAbi,
+    address: serviceFeeReceiver,
+    functionName: 'serviceFee',
+    query: {
+      enabled: !!serviceFeeReceiver && !!address
+    }
+  });
 
+  const serviceFeeEth = isFetchedServiceFee && data ? formatEther(data as any) : '0';
+
+  console.log('-----serviceFeeEth-------', serviceFeeEth, serviceFeeReceiver, !!serviceFeeReceiver && !!address, data);
   const { data: balanceData } = useBalance({
     address,
   });
 
-  // const tokenFactoryAddress: `0x${string}` = "0x324BF4ae1c6ca3d28B700a6158aF203e908F0C12";
-  const tokenFactoryAddress: `0x${string}` = "0x324BF4ae1c6ca3d28B700a6158aF203e908F0C12";
-
-  const tokenFactoryABI = [
-    {
-      type: "function",
-      name: "createToken",
-      stateMutability: "payable",
-      inputs: [
-        { name: "name", type: "string" },
-        { name: "symbol", type: "string" },
-        { name: "totalSupply", type: "uint256" },
-        { name: "router", type: "address" },
-        { name: "treasuryAddress", type: "string" },
-        {
-          name: "feeSettings",
-          type: "tuple",
-          components: [
-            {name: "reflectionFeeBps", type: "uint16"},
-            {name: "applyReflectionFeeToAll", type: "bool"},
-            {name: "liquidityFeeBps", type: "uint16"},
-            {name: "applyLiquidityFeeToAll", type: "bool"},
-            {name: "treasuryFeeBps", type: "uint16"},
-            {name: "applyTreasuryFeeToAll", type: "bool"},
-            {name: "burnFeeBps", type: "uint16"},
-            {name: "applyBurnFeeToAll", type: "bool"},
-          ],
-        },
-        { name: "serviceFeeReceiver", type: "address" },
-        { name: "serviceFee", type: "uint256" },
-      ],
-      outputs: [{ name: "tokenAddress", type: "address" }],
-    },
-  ] as const;
-
   const handleCreate = async () => {
     try {
+      if (!walletClient) {
+        throw new Error("Wallet client not connected");
+      }
+
       setLoading(true);
 
       const supply = parseUnits(totalSupply, 18);
@@ -89,10 +71,9 @@ const ConfirmButton: React.FC<ConfirmButtonProps> = ({
         throw new Error("Insufficient ETH to cover the service fee.");
       }
 
-      const hash = await writeContractAsync({
-        address: tokenFactoryAddress,
-        abi: tokenFactoryABI,
-        functionName: "createToken",
+      const txHash = await walletClient.deployContract({
+        abi: RexasErc20.abi,
+        bytecode: RexasErc20.bytecode as `0x${string}`,
         args: [
           name,
           symbol,
@@ -106,11 +87,25 @@ const ConfirmButton: React.FC<ConfirmButtonProps> = ({
         value: serviceFee,
       });
 
-      alert("Token created successfully!");
-      onSuccess?.(hash);
+      const receipt = await publicClient?.waitForTransactionReceipt({
+        hash: txHash
+      });
+
+      if (!receipt || !receipt.contractAddress) {
+        throw new Error("Failed to deploy the contract. hash:" + txHash);
+      }
+
+      toast({
+        title: "Token Created",
+        description: "Token created successfully!"
+      });
+      onSuccess?.(receipt.contractAddress);
     } catch (error: any) {
-      console.error("Token creation error:", error);
-      alert(`Failed to create token.\n${error?.shortMessage || error?.message || error}`);
+      console.log('-----------------------------------')
+      toast({
+        title: "Token Creation Failed",
+        description: `Failed to create token.\n${error?.shortMessage || error?.message || error}`
+      });
       onError?.(error);
     } finally {
       setLoading(false);

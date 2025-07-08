@@ -24,6 +24,7 @@ import BuybackLiquidityForm from "../components/BuybackLiquidityForm";
 import ConfirmButton from "@/components/ui/ConfirmButton";
 import { WalletAddressButton } from "@/components/ui/WalletAddressButton";
 import { FeeSettings } from "@/types/feesetting";
+import { getContractAddress } from "@/constants/constants";
 
 export default function ERC20TokenPage() {
   const [expandedSections, setExpandedSections] = useState({
@@ -91,6 +92,9 @@ export default function ERC20TokenPage() {
     e.preventDefault();
     console.log("Form submitted - token creation data");
   };
+
+  const routerAddress = getContractAddress(selectedChainId || 'ethereum')?.router;
+  const serviceFeeReceiver = getContractAddress(selectedChainId || 'ethereum')?.serviceFeeReceiver;
 
   return (
     <CreateTokenContainer>
@@ -491,12 +495,11 @@ export default function ERC20TokenPage() {
               name={tokenName}
               symbol={tokenSymbol}
               totalSupply={initialSupply}
-              router="0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"
+              router={routerAddress}
               treasuryAddress={treasuryWallet}
               feeSettings={feeSettings}
-              serviceFeeReceiver="0x324BF4ae1c6ca3d28B700a6158aF203e908F0C12"
-              serviceFeeEth="0.01"
-              onSuccess={(txHash) => console.log("Created token in tx:", txHash)}
+              serviceFeeReceiver={serviceFeeReceiver}
+              onSuccess={(tokenAddress) => console.log("Created token address:", tokenAddress)}
               onError={(err) => console.error("Token creation failed:", err)}
             />
           </div>
@@ -505,3 +508,4 @@ export default function ERC20TokenPage() {
     </CreateTokenContainer>
   );
 }
+
